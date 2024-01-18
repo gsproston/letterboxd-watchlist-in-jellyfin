@@ -1,5 +1,5 @@
 [package]
-name = "letterboxd-wishlist-in-jellyfin"
+name = "letterboxd-watchlist-in-jellyfin"
 version = "0.1.0"
 edition = "2021"
 
