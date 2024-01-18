@@ -1,5 +1,6 @@
 use std::env;
 use std::error::Error;
+use std::process::ExitCode;
 use csv::Reader;
 
 fn read_csv(csv_file_name: &String) -> Result<(), Box<dyn Error>> {
@@ -11,9 +12,22 @@ fn read_csv(csv_file_name: &String) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn main() {
+fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
 
+    if args.len() < 2 {
+        eprintln!("Please provide the path to the CSV");
+        return ExitCode::from(1);
+    }
+
     let csv_file_name = &args[1];
-    read_csv(csv_file_name);
+    match read_csv(csv_file_name) {
+        Ok(()) => (),
+        Err(error) => {
+            eprintln!("Failed to read the CSV: {}", error);
+            return ExitCode::from(2) 
+        },
+    };
+
+    ExitCode::SUCCESS
 }
