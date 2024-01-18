@@ -1,4 +1,4 @@
-# letterboxd-wishlist-in-jellyfin
+# letterboxd-watchlist-in-jellyfin
 Wee program that sees if any films in your Letterboxd watchlist are on JellyFin.
 
 ## Run
