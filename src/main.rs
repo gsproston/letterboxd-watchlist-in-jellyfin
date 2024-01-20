@@ -1,16 +1,7 @@
 use std::env;
-use std::error::Error;
 use std::process::ExitCode;
-use csv::Reader;
 
-fn read_csv(csv_file_name: &String) -> Result<(), Box<dyn Error>> {
-    let mut rdr = Reader::from_path(csv_file_name)?;
-    for result in rdr.records() {
-        let record = result?;
-        println!("{:?}", record);
-    }
-    Ok(())
-}
+mod letterboxd;
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
@@ -21,13 +12,18 @@ fn main() -> ExitCode {
     }
 
     let csv_file_name = &args[1];
-    match read_csv(csv_file_name) {
-        Ok(()) => (),
+    let watchlist = match letterboxd::get_watchlist(csv_file_name) {
+        Ok(watchlist) => watchlist,
         Err(error) => {
             eprintln!("Failed to read the CSV: {}", error);
             return ExitCode::from(2) 
         },
     };
+
+    for film in &watchlist {
+        println!("{} ({})", film.get_title(), film.get_year());
+    }
+    println!("\nTotal films: {}", watchlist.len());
 
     ExitCode::SUCCESS
 }
