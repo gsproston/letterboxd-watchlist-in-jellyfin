@@ -15,3 +15,4 @@ Cargo.lock
 
 # Input directory containing CSV wishlist data
 input/
+credentials.rs
