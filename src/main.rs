@@ -2,6 +2,7 @@ use std::env;
 use std::process::ExitCode;
 
 mod letterboxd;
+mod jellyfin;
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
@@ -24,6 +25,8 @@ fn main() -> ExitCode {
         println!("{} ({})", film.get_title(), film.get_year());
     }
     println!("\nTotal films: {}", watchlist.len());
+    
+    jellyfin::is_film_on_jellyfin();
 
     ExitCode::SUCCESS
 }
