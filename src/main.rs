@@ -16,8 +16,8 @@ fn main() -> ExitCode {
         return ExitCode::from(1);
     }
 
-    let csv_file_name = &args[1];
-    let watchlist = match letterboxd::get_watchlist(csv_file_name) {
+    let path_to_watchlist_csv = &args[1];
+    let watchlist = match letterboxd::get_watchlist(&path_to_watchlist_csv) {
         Ok(watchlist) => watchlist,
         Err(error) => {
             eprintln!("Failed to read the CSV: {}", error);
