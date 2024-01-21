@@ -27,7 +27,7 @@ fn main() -> ExitCode {
     }
     println!("\nTotal films: {}", watchlist.len());
     
-    jellyfin::is_film_on_jellyfin();
+    jellyfin::is_film_on_jellyfin(&watchlist[0]);
 
     ExitCode::SUCCESS
 }
