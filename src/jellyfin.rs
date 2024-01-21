@@ -7,17 +7,25 @@ use crate::film::Film;
 mod api;
 mod credentials;
 
-// JellyFin requires X-Emby-Authorisation
-// more info here https://github.com/MediaBrowser/Emby/wiki/User-Authentication
-// TODO: get actual device ID
-const AUTH_HEADER: &str = 
-  "MediaBrowser Client=\"Jellyfin Web\", \
-  DeviceId=\"0146dd77-ef5f-49c3-818c-f6949909305e\", \
-  Version=\"0.1.0\"";
-
 pub struct User {
   id: String,
   token: String,
+}
+
+fn get_auth_header(user_token: Option<&String>) -> String {
+  let version = env!("CARGO_PKG_VERSION");
+  // JellyFin requires X-Emby-Authorisation
+  // more info here https://github.com/MediaBrowser/Emby/wiki/User-Authentication
+  // TODO: get actual device ID
+  let auth_header =  
+    "MediaBrowser Client=\"Jellyfin Web\", \
+    DeviceId=\"0146dd77-ef5f-49c3-818c-f6949909305e\", \
+    Version=\"".to_owned() + version + "\"";
+
+  return match user_token {
+    Some(token) => auth_header + ", Token=\"" + &token + "\"",
+    None => auth_header, 
+  };
 }
 
 fn search(client: &reqwest::blocking::Client, film: &Film, user: &User) -> Result<bool, String> { 
@@ -40,7 +48,7 @@ fn search(client: &reqwest::blocking::Client, film: &Film, user: &User) -> Resul
 
   let res = match client
     .get(url)
-    .header("X-Emby-Authorization", AUTH_HEADER.to_owned() + ", Token=\"" + &user.token + "\"")
+    .header("X-Emby-Authorization", get_auth_header(Some(&user.token)))
     .send() {
       Ok(res) => res,
       Err(error) => {
@@ -73,7 +81,7 @@ pub fn login(client: &reqwest::blocking::Client) -> Result<User, String> {
 
   let res = match client
     .post(credentials::JELLYFIN_URL.to_owned() + "/Users/AuthenticateByName")
-    .header("X-Emby-Authorization", AUTH_HEADER)
+    .header("X-Emby-Authorization", get_auth_header(None))
     .json(&login_credentials)
     .send() {
       Ok(res) => res,
