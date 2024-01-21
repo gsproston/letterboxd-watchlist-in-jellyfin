@@ -1,5 +1,8 @@
+use std::io::Write;
 use std::env;
 use std::process::ExitCode;
+
+use film::Film;
 
 mod letterboxd;
 mod jellyfin;
@@ -31,16 +34,32 @@ fn main() -> ExitCode {
         }
       };
 
+    let mut films_found: Vec<Film> = Vec::new();
+    let mut films_not_found: Vec<Film> = Vec::new();
+
     for film in &watchlist {
-        let film_title = format!("{} ({})", film.title, film.year);
+        print!(".");
+        let _ = std::io::stdout().flush();
+        
         let found = jellyfin::is_film_on_jellyfin(&jf_client, &film, &jf_user);
+        let film_copy = Film {
+            title: film.title.clone(),
+            year: film.year.clone(),
+        };
         if found {
-            println!("{} - FOUND", film_title);
+            films_found.push(film_copy);
         } else {
-            println!("{} - NOT FOUND", film_title);
+            films_not_found.push(film_copy);
         }
-        // TODO remove
-        break;
+    }
+
+    println!("\n{} films NOT FOUND:", films_not_found.len());
+    for film in &films_not_found {
+        println!("{} ({})", film.title, film.year);
+    }
+    println!("\n{} films FOUND:", films_found.len());
+    for film in &films_found {
+        println!("{} ({})", film.title, film.year);
     }
     
     ExitCode::SUCCESS
