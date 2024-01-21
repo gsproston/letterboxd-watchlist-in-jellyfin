@@ -23,11 +23,16 @@ fn main() -> ExitCode {
     };
 
     for film in &watchlist {
-        println!("{} ({})", film.title, film.year);
+        let film_title = format!("{} ({})", film.title, film.year);
+        let found = jellyfin::is_film_on_jellyfin(film);
+        if found {
+            println!("{} - FOUND", film_title);
+        } else {
+            println!("{} - NOT FOUND", film_title);
+        }
+        // TODO remove
+        break;
     }
-    println!("\nTotal films: {}", watchlist.len());
     
-    jellyfin::is_film_on_jellyfin(&watchlist[0]);
-
     ExitCode::SUCCESS
 }
