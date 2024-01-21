@@ -43,12 +43,57 @@ pub struct User {
   token: String,
 }
 
-fn login() -> Result<User, String> {
+fn search(client: &reqwest::blocking::Client, film: &Film, user: &User) -> Result<bool, String> { 
+  let url_path = credentials::JELLYFIN_URL.to_owned() + "/Users/" + &user.id + "/Items";
+  let url = match reqwest::Url::parse_with_params(&url_path,
+    &[ ("IncludeItemTypes", "Movie")
+            ,("Limit", "1")
+            ,("Recursive", "true")
+            ,("searchTerm", &film.title)
+            ,("years", &film.year)
+          ]
+  ) {
+    Ok(url) => url,
+    Err(error) => {
+      let err_msg = format!("Failed to parse URL: {}", error);
+      eprintln!("{err_msg}");
+      return Err(err_msg);
+    },
+  };
+
+  let res = match client
+    .get(url)
+    .header("X-Emby-Authorization", AUTH_HEADER.to_owned() + ", Token=\"" + &user.token + "\"")
+    .send() {
+      Ok(res) => res,
+      Err(error) => {
+        let err_msg = format!("Failed to search: {}", error);
+        eprintln!("{err_msg}");
+        return Err(err_msg);
+      }
+    };
+
+  let body = match res.json::<JellyFinSearchRes>() {
+    Ok(json) => json,
+    Err(error) => {
+      let err_msg = format!("Failed to parse response body: {}", error);
+      eprintln!("{err_msg}");
+      return Err(err_msg);
+    }
+  };
+
+  return Ok(!body.items.is_empty());
+}
+
+pub fn init() -> reqwest::blocking::Client {
+  return reqwest::blocking::Client::new();
+}
+
+pub fn login(client: &reqwest::blocking::Client) -> Result<User, String> {
   let mut login_credentials = HashMap::new();
   login_credentials.insert("Pw", credentials::JELLYFIN_PASSWORD);
   login_credentials.insert("Username", credentials::JELLYFIN_USERNAME);
 
-  let client = reqwest::blocking::Client::new();
   let res = match client
     .post(credentials::JELLYFIN_URL.to_owned() + "/Users/AuthenticateByName")
     .header("X-Emby-Authorization", AUTH_HEADER)
@@ -79,59 +124,8 @@ fn login() -> Result<User, String> {
   return Ok(user);
 }
 
-fn search(film: &Film, user: &User) -> Result<bool, String> { 
-  let url_path = credentials::JELLYFIN_URL.to_owned() + "/Users/" + &user.id + "/Items";
-  let url = match reqwest::Url::parse_with_params(&url_path,
-    &[ ("IncludeItemTypes", "Movie")
-            ,("Limit", "1")
-            ,("Recursive", "true")
-            ,("searchTerm", &film.title)
-            ,("years", &film.year)
-          ]
-  ) {
-    Ok(url) => url,
-    Err(error) => {
-      let err_msg = format!("Failed to parse URL: {}", error);
-      eprintln!("{err_msg}");
-      return Err(err_msg);
-    },
-  };
-
-  let client = reqwest::blocking::Client::new();
-  let res = match client
-    .get(url)
-    .header("X-Emby-Authorization", AUTH_HEADER.to_owned() + ", Token=\"" + &user.token + "\"")
-    .send() {
-      Ok(res) => res,
-      Err(error) => {
-        let err_msg = format!("Failed to search: {}", error);
-        eprintln!("{err_msg}");
-        return Err(err_msg);
-      }
-    };
-
-  let body = match res.json::<JellyFinSearchRes>() {
-    Ok(json) => json,
-    Err(error) => {
-      let err_msg = format!("Failed to parse response body: {}", error);
-      eprintln!("{err_msg}");
-      return Err(err_msg);
-    }
-  };
-
-  return Ok(!body.items.is_empty());
-}
-
-pub fn is_film_on_jellyfin(film: &Film) -> bool {
-  let user = match login(){
-    Ok(user) => user,
-    Err(error) => {
-      eprintln!("Failed to login to JellyFin: {}", error);
-      return false;
-    }
-  };
-  
-  return match search(film, &user) {
+pub fn is_film_on_jellyfin(client: &reqwest::blocking::Client, film: &Film, user: &User) -> bool {  
+  return match search(client, film, user) {
     Ok(found) => found,
     Err(_error) => {
       return false;

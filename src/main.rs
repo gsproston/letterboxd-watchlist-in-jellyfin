@@ -22,9 +22,18 @@ fn main() -> ExitCode {
         },
     };
 
+    let jf_client = jellyfin::init();
+    let jf_user = match jellyfin::login(&jf_client) {
+        Ok(user) => user,
+        Err(error) => {
+          eprintln!("Failed to login to JellyFin: {}", error);
+          return ExitCode::from(3);
+        }
+      };
+
     for film in &watchlist {
         let film_title = format!("{} ({})", film.title, film.year);
-        let found = jellyfin::is_film_on_jellyfin(film);
+        let found = jellyfin::is_film_on_jellyfin(&jf_client, &film, &jf_user);
         if found {
             println!("{} - FOUND", film_title);
         } else {
