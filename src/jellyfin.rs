@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
 use reqwest;
-use serde::Deserialize;
 
 use crate::film::Film;
 
+mod api;
 mod credentials;
 
 // JellyFin requires X-Emby-Authorisation
@@ -14,29 +14,6 @@ const AUTH_HEADER: &str =
   "MediaBrowser Client=\"Jellyfin Web\", \
   DeviceId=\"0146dd77-ef5f-49c3-818c-f6949909305e\", \
   Version=\"0.1.0\"";
-
-#[derive(Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct JellyFinLoginUserRes {
-  id: String,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct JellyFinLoginRes {
-  user: JellyFinLoginUserRes,
-  access_token: String,
-}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct JellyFinSearchItemRes {}
-
-#[derive(Deserialize)]
-#[serde(rename_all = "PascalCase")]
-struct JellyFinSearchRes {
-  items: Vec<JellyFinSearchItemRes>,
-}
 
 pub struct User {
   id: String,
@@ -73,7 +50,7 @@ fn search(client: &reqwest::blocking::Client, film: &Film, user: &User) -> Resul
       }
     };
 
-  let body = match res.json::<JellyFinSearchRes>() {
+  let body = match res.json::<api::JellyFinSearchRes>() {
     Ok(json) => json,
     Err(error) => {
       let err_msg = format!("Failed to parse response body: {}", error);
@@ -107,7 +84,7 @@ pub fn login(client: &reqwest::blocking::Client) -> Result<User, String> {
       }
     };
   
-  let body = match res.json::<JellyFinLoginRes>() {
+  let body = match res.json::<api::JellyFinLoginRes>() {
     Ok(json) => json,
     Err(error) => {
       let err_msg = format!("Failed to parse response body: {}", error);
