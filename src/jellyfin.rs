@@ -30,10 +30,7 @@ struct JellyFinLoginRes {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "PascalCase")]
-struct JellyFinSearchItemRes {
-  name: String,
-  production_year: u16,
-}
+struct JellyFinSearchItemRes {}
 
 #[derive(Deserialize)]
 #[serde(rename_all = "PascalCase")]
