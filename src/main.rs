@@ -3,6 +3,7 @@ use std::process::ExitCode;
 
 mod letterboxd;
 mod jellyfin;
+mod film;
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
@@ -22,7 +23,7 @@ fn main() -> ExitCode {
     };
 
     for film in &watchlist {
-        println!("{} ({})", film.get_title(), film.get_year());
+        println!("{} ({})", film.title, film.year);
     }
     println!("\nTotal films: {}", watchlist.len());
     
