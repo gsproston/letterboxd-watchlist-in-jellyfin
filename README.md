@@ -2,6 +2,8 @@
 Wee program that sees if any films in your Letterboxd watchlist are on JellyFin.
 
 ## Setup
+[Get Rust](https://www.rust-lang.org/learn/get-started).
+
 Export your [Letterboxd watchlist](https://letterboxd.com/watchlist/) in CSV format.
 
 Set JellyFin credentials:
