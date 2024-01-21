@@ -13,6 +13,7 @@ Cargo.lock
 # MSVC Windows builds of rustc generate these, which store debugging information
 *.pdb
 
-# Input directory containing CSV wishlist data
+# Input directory containing CSV watchlist data
 input/
+# JellyFin credentials
 credentials.rs
