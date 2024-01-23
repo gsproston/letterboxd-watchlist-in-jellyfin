@@ -16,7 +16,7 @@ fn main() -> ExitCode {
     }
 
     let path_to_watchlist_csv = &args[1];
-    let watchlist = match letterboxd::get_watchlist(&path_to_watchlist_csv) {
+    let mut watchlist = match letterboxd::get_watchlist(&path_to_watchlist_csv) {
         Ok(watchlist) => watchlist,
         Err(error) => {
             eprintln!("Failed to read the CSV: {}", error);
@@ -43,20 +43,15 @@ fn main() -> ExitCode {
     let mut films_found: Vec<Film> = Vec::new();
     let mut films_not_found: Vec<Film> = Vec::new();
 
-    for film in &watchlist { 
+    while let Some(film) = watchlist.pop() {
         let found = jf_films.iter().any(|jf_film| 
             jf_film.title.eq_ignore_ascii_case(&film.title) &&
             jf_film.year.eq_ignore_ascii_case(&film.year)
         );
-
-        let film_copy = Film {
-            title: film.title.clone(),
-            year: film.year.clone(),
-        };
         if found {
-            films_found.push(film_copy);
+            films_found.push(film);
         } else {
-            films_not_found.push(film_copy);
+            films_not_found.push(film);
         }
     }
 
