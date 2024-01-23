@@ -60,7 +60,7 @@ fn main() -> ExitCode {
         }
     }
 
-    println!("\n{} films NOT FOUND:", films_not_found.len());
+    println!("{} films NOT FOUND:", films_not_found.len());
     for film in &films_not_found {
         println!("{} ({})", film.title, film.year);
     }
