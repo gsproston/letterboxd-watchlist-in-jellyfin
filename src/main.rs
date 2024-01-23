@@ -36,7 +36,7 @@ fn main() -> ExitCode {
         Ok(films) => films,
         Err(error) => {
           eprintln!("Failed to get JellyFin films: {}", error);
-          return ExitCode::from(3);
+          return ExitCode::from(4);
         }
     };
 
