@@ -1,4 +1,4 @@
 pub struct Film {
-  pub title: String,
-  pub year: String
+    pub title: String,
+    pub year: String,
 }

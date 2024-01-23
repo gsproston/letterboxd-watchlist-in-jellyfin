@@ -4,9 +4,9 @@ use std::process::ExitCode;
 
 use film::Film;
 
-mod letterboxd;
-mod jellyfin;
 mod film;
+mod jellyfin;
+mod letterboxd;
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
@@ -21,24 +21,27 @@ fn main() -> ExitCode {
         Ok(watchlist) => watchlist,
         Err(error) => {
             eprintln!("Failed to read the CSV: {}", error);
-            return ExitCode::from(2) 
-        },
+            return ExitCode::from(2);
+        }
     };
 
     let jf_client = jellyfin::init();
     let jf_user = match jellyfin::login(&jf_client) {
         Ok(user) => user,
         Err(error) => {
-          eprintln!("Failed to login to JellyFin: {}", error);
-          return ExitCode::from(3);
+            eprintln!("Failed to login to JellyFin: {}", error);
+            return ExitCode::from(3);
         }
-      };
-    let years = watchlist.iter().map(|film| film.year.to_owned()).collect::<HashSet<String>>();
+    };
+    let years = watchlist
+        .iter()
+        .map(|film| film.year.to_owned())
+        .collect::<HashSet<String>>();
     let jf_films = match jellyfin::get_all_films(&jf_client, &jf_user, years) {
         Ok(films) => films,
         Err(error) => {
-          eprintln!("Failed to get JellyFin films: {}", error);
-          return ExitCode::from(4);
+            eprintln!("Failed to get JellyFin films: {}", error);
+            return ExitCode::from(4);
         }
     };
 
@@ -46,10 +49,10 @@ fn main() -> ExitCode {
     let mut films_not_found: Vec<Film> = Vec::new();
 
     while let Some(film) = watchlist.pop() {
-        let found = jf_films.iter().any(|jf_film| 
-            jf_film.title.eq_ignore_ascii_case(&film.title) &&
-            jf_film.year.eq_ignore_ascii_case(&film.year)
-        );
+        let found = jf_films.iter().any(|jf_film| {
+            jf_film.title.eq_ignore_ascii_case(&film.title)
+                && jf_film.year.eq_ignore_ascii_case(&film.year)
+        });
         if found {
             films_found.push(film);
         } else {
@@ -65,6 +68,6 @@ fn main() -> ExitCode {
     for film in &films_found {
         println!("{} ({})", film.title, film.year);
     }
-    
+
     ExitCode::SUCCESS
 }
