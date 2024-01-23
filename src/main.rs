@@ -1,4 +1,3 @@
-use std::io::Write;
 use std::env;
 use std::process::ExitCode;
 
@@ -33,15 +32,23 @@ fn main() -> ExitCode {
           return ExitCode::from(3);
         }
       };
+    let jf_films = match jellyfin::get_all_films(&jf_client, &jf_user) {
+        Ok(films) => films,
+        Err(error) => {
+          eprintln!("Failed to get JellyFin films: {}", error);
+          return ExitCode::from(3);
+        }
+    };
 
     let mut films_found: Vec<Film> = Vec::new();
     let mut films_not_found: Vec<Film> = Vec::new();
 
-    for film in &watchlist {
-        print!(".");
-        let _ = std::io::stdout().flush();
-        
-        let found = jellyfin::is_film_on_jellyfin(&jf_client, &film, &jf_user);
+    for film in &watchlist { 
+        let found = jf_films.iter().any(|jf_film| 
+            jf_film.title.eq_ignore_ascii_case(&film.title) &&
+            jf_film.year.eq_ignore_ascii_case(&film.year)
+        );
+
         let film_copy = Film {
             title: film.title.clone(),
             year: film.year.clone(),

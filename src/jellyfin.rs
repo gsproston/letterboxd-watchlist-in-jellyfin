@@ -28,16 +28,12 @@ fn get_auth_header(user_token: Option<&String>) -> String {
   };
 }
 
-fn search(client: &reqwest::blocking::Client, film: &Film, user: &User) -> Result<bool, String> { 
+pub fn get_all_films(client: &reqwest::blocking::Client, user: &User) -> Result<Vec<Film>, String> { 
   let url_path = credentials::JELLYFIN_URL.to_owned() + "/Users/" + &user.id + "/Items";
-  let url = match reqwest::Url::parse_with_params(&url_path,
-    &[ ("IncludeItemTypes", "Movie")
-            ,("Limit", "1")
-            ,("Recursive", "true")
-            ,("searchTerm", &film.title)
-            ,("years", &film.year)
-          ]
-  ) {
+  let url = match reqwest::Url::parse_with_params(&url_path, &[
+     ("IncludeItemTypes", "Movie")
+    ,("Recursive", "true")
+  ]) {
     Ok(url) => url,
     Err(error) => {
       let err_msg = format!("Failed to parse URL: {}", error);
@@ -67,7 +63,16 @@ fn search(client: &reqwest::blocking::Client, film: &Film, user: &User) -> Resul
     }
   };
 
-  return Ok(!body.items.is_empty());
+  let mut films: Vec<Film> = Vec::new();
+  for item in body.items {
+    let film = Film {
+      title: item.name,
+      year: item.production_year.to_string(),
+    };
+    films.push(film);
+  }
+
+  return Ok(films);
 }
 
 pub fn init() -> reqwest::blocking::Client {
@@ -107,13 +112,4 @@ pub fn login(client: &reqwest::blocking::Client) -> Result<User, String> {
   };
 
   return Ok(user);
-}
-
-pub fn is_film_on_jellyfin(client: &reqwest::blocking::Client, film: &Film, user: &User) -> bool {  
-  return match search(client, film, user) {
-    Ok(found) => found,
-    Err(_error) => {
-      return false;
-    }
-  }
 }
