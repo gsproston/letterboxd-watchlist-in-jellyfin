@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use reqwest;
 
@@ -28,11 +28,13 @@ fn get_auth_header(user_token: Option<&String>) -> String {
   };
 }
 
-pub fn get_all_films(client: &reqwest::blocking::Client, user: &User) -> Result<Vec<Film>, String> { 
+pub fn get_all_films(client: &reqwest::blocking::Client, user: &User, years: HashSet<String>) -> Result<Vec<Film>, String> { 
+  let years_filter = years.iter().map(|year| year.to_owned() + ",").collect::<String>();
   let url_path = credentials::JELLYFIN_URL.to_owned() + "/Users/" + &user.id + "/Items";
   let url = match reqwest::Url::parse_with_params(&url_path, &[
      ("IncludeItemTypes", "Movie")
     ,("Recursive", "true")
+    ,("years", &years_filter)
   ]) {
     Ok(url) => url,
     Err(error) => {

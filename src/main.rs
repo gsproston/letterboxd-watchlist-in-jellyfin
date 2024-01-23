@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::env;
 use std::process::ExitCode;
 
@@ -32,7 +33,8 @@ fn main() -> ExitCode {
           return ExitCode::from(3);
         }
       };
-    let jf_films = match jellyfin::get_all_films(&jf_client, &jf_user) {
+    let years = watchlist.iter().map(|film| film.year.to_owned()).collect::<HashSet<String>>();
+    let jf_films = match jellyfin::get_all_films(&jf_client, &jf_user, years) {
         Ok(films) => films,
         Err(error) => {
           eprintln!("Failed to get JellyFin films: {}", error);
