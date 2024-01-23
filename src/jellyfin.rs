@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use reqwest;
 
@@ -28,16 +28,14 @@ fn get_auth_header(user_token: Option<&String>) -> String {
   };
 }
 
-fn search(client: &reqwest::blocking::Client, film: &Film, user: &User) -> Result<bool, String> { 
+pub fn get_all_films(client: &reqwest::blocking::Client, user: &User, years: HashSet<String>) -> Result<Vec<Film>, String> { 
+  let years_filter = years.iter().map(|year| year.to_owned() + ",").collect::<String>();
   let url_path = credentials::JELLYFIN_URL.to_owned() + "/Users/" + &user.id + "/Items";
-  let url = match reqwest::Url::parse_with_params(&url_path,
-    &[ ("IncludeItemTypes", "Movie")
-            ,("Limit", "1")
-            ,("Recursive", "true")
-            ,("searchTerm", &film.title)
-            ,("years", &film.year)
-          ]
-  ) {
+  let url = match reqwest::Url::parse_with_params(&url_path, &[
+     ("IncludeItemTypes", "Movie")
+    ,("Recursive", "true")
+    ,("years", &years_filter)
+  ]) {
     Ok(url) => url,
     Err(error) => {
       let err_msg = format!("Failed to parse URL: {}", error);
@@ -67,7 +65,14 @@ fn search(client: &reqwest::blocking::Client, film: &Film, user: &User) -> Resul
     }
   };
 
-  return Ok(!body.items.is_empty());
+  let films = body.items.iter().map(|item|
+    Film {
+      title: item.name.to_owned(),
+      year: item.production_year.to_string(),
+    }
+  ).collect::<Vec<Film>>();
+
+  return Ok(films);
 }
 
 pub fn init() -> reqwest::blocking::Client {
@@ -107,13 +112,4 @@ pub fn login(client: &reqwest::blocking::Client) -> Result<User, String> {
   };
 
   return Ok(user);
-}
-
-pub fn is_film_on_jellyfin(client: &reqwest::blocking::Client, film: &Film, user: &User) -> bool {  
-  return match search(client, film, user) {
-    Ok(found) => found,
-    Err(_error) => {
-      return false;
-    }
-  }
 }

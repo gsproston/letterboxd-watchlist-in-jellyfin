@@ -15,7 +15,10 @@ pub struct JellyFinLoginRes {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "PascalCase")]
-pub struct JellyFinSearchItemRes {}
+pub struct JellyFinSearchItemRes {
+  pub name: String,
+  pub production_year: u16,
+}
 
 #[derive(Deserialize)]
 #[serde(rename_all = "PascalCase")]
