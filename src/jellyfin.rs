@@ -65,14 +65,12 @@ pub fn get_all_films(client: &reqwest::blocking::Client, user: &User, years: Has
     }
   };
 
-  let mut films: Vec<Film> = Vec::new();
-  for item in body.items {
-    let film = Film {
-      title: item.name,
+  let films = body.items.iter().map(|item|
+    Film {
+      title: item.name.to_owned(),
       year: item.production_year.to_string(),
-    };
-    films.push(film);
-  }
+    }
+  ).collect::<Vec<Film>>();
 
   return Ok(films);
 }
