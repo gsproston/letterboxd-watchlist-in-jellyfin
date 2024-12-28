@@ -16,8 +16,9 @@ fn get_auth_header(user_token: Option<&String>) -> String {
     let version = env!("CARGO_PKG_VERSION");
     // JellyFin requires X-Emby-Authorisation
     // more info here https://github.com/MediaBrowser/Emby/wiki/User-Authentication
-    // TODO: get actual device ID
+    // TODO: get actual device and device ID
     let auth_header = "MediaBrowser Client=\"Jellyfin Web\", \
+    Device=\"Chrome\", \
     DeviceId=\"0146dd77-ef5f-49c3-818c-f6949909305e\", \
     Version=\""
         .to_owned()
